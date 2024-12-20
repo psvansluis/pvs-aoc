@@ -13,12 +13,12 @@ val parsed = inputString.split("\n").map { line ->
 fun <T> List<T>.allAdjacent(predicate: (Pair<T, T>) -> Boolean): Boolean =
     this.windowed(2).map { Pair(it[0], it[1]) }.all(predicate)
 
-fun List<Int>.isIncreasing() = allAdjacent { (fst, snd) -> fst < snd }
+fun List<Int>.isIncreasing() = allAdjacent { it.first < it.second }
 
-fun List<Int>.isDecreasing() = allAdjacent { (fst, snd) -> fst > snd }
+fun List<Int>.isDecreasing() = allAdjacent { it.first > it.second }
 
-fun List<Int>.differsByAtLeastOneAndAtMostThree() = allAdjacent { (fst, snd) ->
-    abs(fst - snd) in 1..3
+fun List<Int>.differsByAtLeastOneAndAtMostThree() = allAdjacent {
+    abs(it.first - it.second) in 1..3
 }
 
 fun List<Int>.isSafe() = (isIncreasing() || isDecreasing()) && differsByAtLeastOneAndAtMostThree()
