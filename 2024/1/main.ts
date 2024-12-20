@@ -16,4 +16,15 @@ const sorted = {
 };
 const diffs = sorted.left.map((left, i) => Math.abs(left - sorted.right[i]));
 const sum = diffs.reduce((a, b) => a + b, 0);
-console.log(sum);
+console.log("sum " + sum);
+
+// part 2
+const occurencesInRight = obj.right.reduce(
+  (obj, item) => ({ ...obj, [item]: (obj[item] ?? 0) + 1 }),
+  {}
+);
+const similarityScores = obj.left.map(
+  (val) => val * (occurencesInRight[val] ?? 0)
+);
+const sumSimilarityScores = similarityScores.reduce((a, b) => a + b, 0);
+console.log("sum of similarityScores " + sumSimilarityScores);
