@@ -2,6 +2,7 @@ import java.io.File
 import kotlin.math.abs
 
 val fileName = "realData.txt"
+//val fileName = "testData.txt"
 val inputStream = File(fileName).inputStream()
 val inputString = inputStream.bufferedReader().readText()
 
@@ -24,3 +25,13 @@ fun List<Int>.isSafe() = (isIncreasing() || isDecreasing()) && differsByAtLeastO
 
 val safeLevels = parsed.count { it.isSafe() }
 println("safe levels: $safeLevels")
+
+// part 2
+
+val List<Int>.subLists: List<List<Int>>
+    get() = List(size) { i -> this.filterIndexed { index, _ -> index != i } }
+
+
+val safeLevelsWithProblemDampener = parsed.count { line -> line.subLists.any { it.isSafe() } }
+
+println("safe levels with problem dampener: $safeLevelsWithProblemDampener")
