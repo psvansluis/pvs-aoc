@@ -8,8 +8,8 @@ val fileName = "realData.txt"
 val inputStream = File(fileName).inputStream()
 val inputString = inputStream.bufferedReader().readText()
 
-val parsed = inputString.split("\n").map { line ->
-    line.split(" ").map(String::toInt)
+val lines: List<Line> = inputString.split("\n").map {
+    it.split(" ").map(String::toInt)
 }
 
 fun <T> List<T>.allAdjacent(predicate: (Pair<T, T>) -> Boolean): Boolean =
@@ -25,7 +25,7 @@ fun Line.differsByAtLeastOneAndAtMostThree() = allAdjacent {
 
 fun Line.isSafe() = (isIncreasing() || isDecreasing()) && differsByAtLeastOneAndAtMostThree()
 
-val safeLevels = parsed.count { it.isSafe() }
+val safeLevels = lines.count { it.isSafe() }
 println("safe levels: $safeLevels")
 
 // part 2
@@ -33,6 +33,6 @@ println("safe levels: $safeLevels")
 val Line.subLists: List<Line>
     get() = List(size) { i -> this.filterIndexed { index, _ -> index != i } }
 
-val safeLevelsWithProblemDampener = parsed.count { line -> line.subLists.any { it.isSafe() } }
+val safeLevelsWithProblemDampener = lines.count { line -> line.subLists.any { it.isSafe() } }
 
 println("safe levels with problem dampener: $safeLevelsWithProblemDampener")
