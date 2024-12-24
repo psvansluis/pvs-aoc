@@ -2,11 +2,11 @@ import java.io.File
 
 // Matrix ops
 
-fun <T> transpose(input: List<List<T>>): List<List<T>> =
-    input
+fun <T> transpose(matrix: List<List<T>>): List<List<T>> =
+    matrix
         .getOrNull(0)
         ?.indices
-        ?.map { i -> input.map { it[i] } }
+        ?.map { i -> matrix.map { it[i] } }
         ?: emptyList()
 
 fun <T> getMainDiagonals(matrix: List<List<T>>): List<List<T>> {
@@ -29,9 +29,7 @@ fun <T> getMainDiagonals(matrix: List<List<T>>): List<List<T>> {
 
 fun <T> rotate90(matrix: List<List<T>>): List<List<T>> = transpose(matrix).map(List<T>::reversed)
 
-fun pathToString(path: String): String = File(path).inputStream().bufferedReader().readText()
-
-// general functional idiom
+// Helper functions
 
 tailrec fun <T> doTimes(n: Int, target: T, transform: (T) -> (T)): T =
     if (n < 1)
@@ -39,7 +37,13 @@ tailrec fun <T> doTimes(n: Int, target: T, transform: (T) -> (T)): T =
     else
         doTimes(n - 1, transform(target), transform)
 
+fun countAcrossFourRotations(matrix: List<List<String>>, countBy: (List<List<String>>) -> Int): Int =
+    (0 until 4).sumOf { doTimes(it, matrix, ::rotate90).let(countBy) }
+
+
 // Parse data
+
+fun pathToString(path: String): String = File(path).inputStream().bufferedReader().readText()
 
 //val fileName = "testData.txt"
 val fileName = "realData.txt"
@@ -56,8 +60,33 @@ fun countHorizontalDiagonalXmas(matrix: List<List<String>>): Int =
     (matrix + getMainDiagonals(matrix)).sumOf { row -> countXmasInRow(row.joinToString("")) }
 
 fun countXmas(matrix: List<List<String>>) =
-    (0 until 4).sumOf { doTimes(it, matrix, ::rotate90).let(::countHorizontalDiagonalXmas) }
+    countAcrossFourRotations(matrix, ::countHorizontalDiagonalXmas)
 
 // result
 
 println("Count of XMAS: ${countXmas(charTable)}")
+
+// part 2
+
+// Count X-MAS
+
+fun countMasCrossInRow(matrix: List<List<String>>): Int = matrix.windowed(
+    3
+).sumOf { window ->
+    val top = window.first()
+    val middle = window[1]
+    val bottom = window.last()
+
+    middle.indices.drop(1).dropLast(1).count { i ->
+        top[i - 1] == "M" && top[i + 1] == "S" &&
+                middle[i] == "A" &&
+                bottom[i - 1] == "M" && bottom[i + 1] == "S"
+    }
+}
+
+fun countMasCross(matrix: List<List<String>>): Int =
+    countAcrossFourRotations(matrix, ::countMasCrossInRow)
+
+// result
+
+println("count of MAS crossed ${countMasCross(charTable)}")
