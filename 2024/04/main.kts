@@ -77,11 +77,19 @@ fun countMasCrossInRow(matrix: List<List<String>>): Int = matrix.windowed(
     val middle = window[1]
     val bottom = window.last()
 
-    middle.indices.drop(1).dropLast(1).count { i ->
-        top[i - 1] == "M" && top[i + 1] == "S" &&
-                middle[i] == "A" &&
-                bottom[i - 1] == "M" && bottom[i + 1] == "S"
-    }
+    middle
+        .indices
+        .drop(1)
+        .dropLast(1)
+        .count { i ->
+            val left = i - 1
+            val right = i + 1
+            top[left] == "M" &&
+                    top[right] == "S" &&
+                    middle[i] == "A" &&
+                    bottom[left] == "M" &&
+                    bottom[right] == "S"
+        }
 }
 
 fun countMasCross(matrix: List<List<String>>): Int =
