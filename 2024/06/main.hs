@@ -1,5 +1,6 @@
-import Data.List (elemIndex, findIndex, intercalate, transpose)
+import Data.List (elemIndex, find, findIndex, intercalate, transpose)
 import Data.Maybe (fromJust, fromMaybe)
+import System.Directory.Internal.Prelude (getArgs)
 import System.IO
   ( IOMode (ReadMode),
     hClose,
@@ -24,10 +25,7 @@ instance Show Position where
 type Map = [[Position]]
 
 showMap :: Map -> String
-showMap m = intercalate "\n" $ map showLine m
-
-showLine :: [Position] -> String
-showLine = concatMap Prelude.show
+showMap m = intercalate "\n" $ map (concatMap show) m
 
 parse :: Char -> Position
 parse '.' = Space {visited = False}
@@ -36,10 +34,7 @@ parse '#' = Obstacle
 parse _ = undefined
 
 stringToPositions :: String -> Map
-stringToPositions str =
-  let ls = lines str
-      parseLine = map parse
-   in map parseLine ls
+stringToPositions str = rotateRight $ map (map parse) (lines str)
 
 hasGuard :: [Position] -> Bool
 hasGuard lst = Guard `elem` lst
@@ -47,27 +42,26 @@ hasGuard lst = Guard `elem` lst
 rotateLeft :: [[a]] -> [[a]]
 rotateLeft = reverse . transpose
 
+rotateRight :: [[a]] -> [[a]]
+rotateRight = rotateLeft . rotateLeft . rotateLeft
+
 canAdvance :: Map -> Bool
-canAdvance m = not ((hasGuard . head) m)
+canAdvance = any hasGuard
 
 advance :: Map -> Map
-advance map =
-  if mustTurn
-    then turnRight
-    else (forwardToGuard . guardToVisited) map
+advance m = rotateLeft updateGuardPos
   where
-    guardRowI = fromJust $ findIndex hasGuard map
-    guardColI = fromJust $ elemIndex Guard $ map !! guardRowI
-    mustTurn = (map !! (guardRowI - 1) !! guardColI) == Obstacle
-    guardToVisited = replace guardRowI guardColI Space {visited = True}
-    forwardToGuard = replace (guardRowI - 1) guardColI Guard
-    turnRight = rotateLeft map
+    updateGuardPos = map (\r -> if hasGuard r then moveGuard r else r) m
 
-replace :: Int -> Int -> Position -> Map -> Map
-replace rowI colI newPosition map = replace' rowI newRow map
+moveGuard :: [Position] -> [Position]
+moveGuard ps = pre ++ visitedSpaces ++ post
   where
-    replace' i newVal list = take i list ++ newVal : drop (i + 1) list
-    newRow = replace' colI newPosition (map !! rowI)
+    (pre, afterPre) = span (/= Guard) ps
+    (mid, post) = span (/= Obstacle) afterPre
+    visitedSpaces =
+      if null post
+        then replicate (length mid) Space {visited = True}
+        else replicate (length mid - 1) Space {visited = True} ++ [Guard]
 
 countVisited :: Map -> Int
 countVisited m = (length . filter isVisited) (concat m)
@@ -83,7 +77,8 @@ part1Answer m = countVisited guardAtEnd
 
 main :: IO ()
 main = do
-  fileHandle <- openFile "realData.txt" ReadMode
+  args <- getArgs
+  fileHandle <- openFile (head args) ReadMode
   contents <- hGetContents fileHandle
   let map = stringToPositions contents
   print $ part1Answer map
