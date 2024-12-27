@@ -38,7 +38,6 @@ val part1Operations: List<(Long, Long) -> Long> = listOf(
     { a, b -> a * b },
 )
 
-
 val part1Answer = data
     .filter { it.canBeProduced(part1Operations) }
     .sumOf(CalibrationEquation::testValue)
