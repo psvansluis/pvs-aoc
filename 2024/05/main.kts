@@ -19,10 +19,10 @@ class Update(val pageNumbers: List<Int>) {
     }
 
     fun sort(rules: List<PageOrderingRule>): Update {
-        val forbiddenFollowers: Map<Int, List<Int>> = rules
+        val mustFollow: Map<Int, List<Int>> = rules
             .fold(mapOf()) { map, rule -> map + (rule.before to (map[rule.before] ?: emptyList()) + rule.after) }
         return pageNumbers.sortedWith { o1, o2 ->
-            if (forbiddenFollowers[o1]?.contains(o2) == true) {
+            if (mustFollow[o1]?.contains(o2) == true) {
                 -1
             } else {
                 0
