@@ -1,34 +1,40 @@
 import java.io.File
 
-val fileName = "testData.txt"
-//val fileName = "realData.txt"
+
+//val fileName = "testData.txt"
+val fileName = "realData.txt"
 
 fun pathToString(path: String): String = File(path).inputStream().bufferedReader().readText()
 
-val stones = pathToString(fileName).split(" ").map { it.toLong() }
+val stones = pathToString(fileName).split(" ").map(String::toLong)
 
 fun blink(stone: Long): List<Long> {
     val str = stone.toString()
     return when {
-        stone == 0L -> listOf(1)
+        stone == 0L -> listOf(1L)
         str.length % 2 == 0 -> str.chunked(str.length / 2).map(String::toLong)
-        else -> listOf(stone * 2024)
+        else -> listOf(stone * 2024L)
     }
 }
 
-fun List<Long>.blink(): List<Long> = flatMap(::blink)
+val memo = mutableMapOf<Pair<List<Long>, Int>, Long>()
+fun <I, O> memoize(memo: MutableMap<I, O>, f: (I) -> O): (I) -> O = { input ->
+    memo.getOrPut(input) { f(input) }
+}
 
-tailrec fun <T> doTimes(n: Int, target: T, transform: (T) -> (T)): T =
-    if (n < 1)
-        target
-    else
-        doTimes(n - 1, transform(target), transform)
+fun countStones(stonesAndBlinks: Pair<List<Long>, Int>): Long = memoize(memo) { (stones, blinks) ->
+    when {
+        stones.isEmpty() || blinks < 1 -> stones.size.toLong()
+        else -> stones.sumOf { countStones(blink(it) to blinks - 1) }
+    }
+}(stonesAndBlinks)
 
-fun List<Long>.blink(times: Int): List<Long> = doTimes(times, this, { it.blink() })
 
 // part 1
-stones.blink(25).size.let(::println)
-
+val part1 = countStones(stones to 25)
 
 // part 2
-stones.blink(75).size.let(::println)
+val part2 = countStones(stones to 75)
+
+println("part1: $part1, part2: $part2")
+println("memo size: ${memo.size}")
