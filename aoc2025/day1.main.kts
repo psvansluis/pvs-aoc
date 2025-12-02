@@ -36,3 +36,8 @@ fun rotate(dial: Dial, rotation: Rotation): Dial {
 
 val dialAtEnd = parsedLines.fold(Dial(), ::rotate)
 println(dialAtEnd)
+
+val dialAtEndPart2 = parsedLines.flatMap { rotation ->
+    generateSequence { Rotation(direction = rotation.direction, distance = 1) }.take(rotation.distance)
+}.fold(Dial(), ::rotate)
+println(dialAtEndPart2)
