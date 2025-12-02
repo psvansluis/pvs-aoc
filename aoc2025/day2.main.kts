@@ -13,8 +13,8 @@ val parsedLines = line[0].split(",").map { rangeRaw ->
     IdRange(split[0].toLong(), split[1].toLong())
 }
 
-fun isInvalidIdPart1(number: Long): Boolean {
-    val str = number.toString()
+fun isInvalidIdPart1(id: Long): Boolean {
+    val str = id.toString()
     if (str.length % 2 != 0) return false
     val chunkLength = str.length / 2
     val fst = str.take(chunkLength)
@@ -29,12 +29,12 @@ fun getInvalidIdsPart1(idRange: IdRange): List<Long> = getInvalidIds(idRange, ::
 
 println(parsedLines.flatMap(::getInvalidIdsPart1).sum())
 
-tailrec fun isInvalidIdPart2(number: Long, nPartitions: Int = 2): Boolean {
-    val str = number.toString()
+tailrec fun isInvalidIdPart2(id: Long, nPartitions: Int = 2): Boolean {
+    val str = id.toString()
     if (nPartitions > str.length) return false
     val chunkLength = str.length / nPartitions
     val substrings = str.chunked(chunkLength)
-    return substrings.all { it == substrings[0] } || isInvalidIdPart2(number, nPartitions + 1)
+    return substrings.all { it == substrings[0] } || isInvalidIdPart2(id, nPartitions + 1)
 }
 
 fun getInvalidIdsPart2(idRange: IdRange): List<Long> = getInvalidIds(idRange, ::isInvalidIdPart2)
