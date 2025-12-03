@@ -4,7 +4,7 @@ import java.io.File
 
 val mode = "input"
 
-val line = File("data/day2/$mode.txt").readLines()
+val line = File("$mode.txt").readLines()
 
 data class IdRange(val start: Long, val end: Long)
 
@@ -34,7 +34,7 @@ tailrec fun isInvalidIdPart2(id: Long, nPartitions: Int = 2): Boolean {
     if (nPartitions > str.length) return false
     val chunkLength = str.length / nPartitions
     val substrings = str.chunked(chunkLength)
-    return substrings.all { it == substrings[0] } || isInvalidIdPart2(id, nPartitions + 1)
+    return substrings.all { it == substrings.last() } || isInvalidIdPart2(id, nPartitions + 1)
 }
 
 fun getInvalidIdsPart2(idRange: IdRange): List<Long> = getInvalidIds(idRange, ::isInvalidIdPart2)

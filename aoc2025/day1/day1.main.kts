@@ -12,7 +12,7 @@ enum class Direction {
 
 val mode = "input"
 
-val lines = File("data/day1/$mode.txt").readLines()
+val lines = File("$mode.txt").readLines()
 
 val parsedLines = lines.map { line ->
     Rotation(
