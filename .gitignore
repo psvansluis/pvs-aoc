@@ -3,3 +3,5 @@
 **/*.exe
 **/*.hi
 **/*.o
+**/target/**
+**/realData.txt

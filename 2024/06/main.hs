@@ -46,12 +46,12 @@ rotateRight :: [[a]] -> [[a]]
 rotateRight = rotateLeft . rotateLeft . rotateLeft
 
 canAdvance :: Map -> Bool
-canAdvance = any hasGuard
+canAdvance m = not $ hasGuard (map last m)
 
 advance :: Map -> Map
-advance m = rotateLeft updateGuardPos
+advance = rotateLeft . updateGuardPos
   where
-    updateGuardPos = map (\r -> if hasGuard r then moveGuard r else r) m
+    updateGuardPos = map (\r -> if hasGuard r then moveGuard r else r)
 
 moveGuard :: [Position] -> [Position]
 moveGuard ps = pre ++ visitedSpaces ++ post
@@ -59,9 +59,7 @@ moveGuard ps = pre ++ visitedSpaces ++ post
     (pre, afterPre) = span (/= Guard) ps
     (mid, post) = span (/= Obstacle) afterPre
     visitedSpaces =
-      if null post
-        then replicate (length mid) Space {visited = True}
-        else replicate (length mid - 1) Space {visited = True} ++ [Guard]
+      replicate (length mid - 1) Space {visited = True} ++ [Guard]
 
 countVisited :: Map -> Int
 countVisited m = (length . filter isVisited) (concat m)
@@ -71,9 +69,12 @@ countVisited m = (length . filter isVisited) (concat m)
     isVisited _ = False
 
 part1Answer :: Map -> Int
-part1Answer m = countVisited guardAtEnd
-  where
-    guardAtEnd = until (not . canAdvance) advance m
+part1Answer = countVisited . mapWithoutGuard
+
+mapWithoutGuard :: Map -> Map
+mapWithoutGuard = until (not . canAdvance) advance
+
+-- part 2
 
 main :: IO ()
 main = do
@@ -82,4 +83,5 @@ main = do
   contents <- hGetContents fileHandle
   let map = stringToPositions contents
   print $ part1Answer map
+  putStrLn $ showMap $ rotateRight $ mapWithoutGuard map
   hClose fileHandle
