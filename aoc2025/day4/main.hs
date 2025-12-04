@@ -8,15 +8,38 @@ main = do
   contents <- readFile "input.txt"
   let parsed = map (map readCell) $ lines contents
   let counted = countNeighbours parsed
-  print $ countPickableRolls counted
+  print "part 1:"
+  print (countPickableRollsPart1 counted)
+  print "part 2:"
+  print $ countPickableRollsPart2 parsed
 
-countPickableRolls :: [[Cell]] -> Int
-countPickableRolls cells = length pickableRolls
+countPickableRollsPart1 :: [[Cell]] -> Int
+countPickableRollsPart1 board = length pickableRolls
   where
-    pickableRolls = filter isPickableRoll allCells
-    isPickableRoll Empty = False
-    isPickableRoll (Roll neighbors) = neighbors < 4
-    allCells = concat cells
+    pickableRolls = concatMap (filter isPickableRoll) board
+
+countPickableRollsPart2 :: [[Cell]] -> Int
+countPickableRollsPart2 board = countRolls board - countRolls endState
+  where
+    endState = until (\b -> b == iter b) iter board
+    iter b = removePickableRolls $ countNeighbours b
+    countRolls b = length $ concatMap (filter isRoll) b
+    isRoll (Roll _) = True
+    isRoll Empty = False
+
+removePickableRolls :: [[Cell]] -> [[Cell]]
+removePickableRolls = map (map removePickableRoll)
+
+removePickableRoll :: Cell -> Cell
+removePickableRoll Empty = Empty
+removePickableRoll cell =
+  if isPickableRoll cell
+    then Empty
+    else Roll 0
+
+isPickableRoll :: Cell -> Bool
+isPickableRoll Empty = False
+isPickableRoll (Roll neighbors) = neighbors < 4
 
 readCell :: Char -> Cell
 readCell '@' = Roll 0
