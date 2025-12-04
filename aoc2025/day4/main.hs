@@ -5,27 +5,27 @@ import Data.Tree (flatten)
 
 main :: IO ()
 main = do
-  contents <- readFile "input.txt"
-  let parsed = map (map readCell) $ lines contents
-  let counted = countNeighbours parsed
-  print "part 1:"
-  print (countPickableRollsPart1 counted)
-  print "part 2:"
-  print $ countPickableRollsPart2 parsed
+  contents <- readFile "example.txt"
+  let board = map (map readCell) $ lines contents
+  putStrLn "part 1:"
+  print (countPickableRollsPart1 board)
+  putStrLn "part 2:"
+  print $ countPickableRollsPart2 board
 
 countPickableRollsPart1 :: [[Cell]] -> Int
 countPickableRollsPart1 board = length pickableRolls
   where
-    pickableRolls = concatMap (filter isPickableRoll) board
+    counted = countNeighbours board
+    pickableRolls = concatMap (filter isPickableRoll) counted
 
 countPickableRollsPart2 :: [[Cell]] -> Int
 countPickableRollsPart2 board = countRolls board - countRolls endState
   where
     endState = until (\b -> b == iter b) iter board
-    iter b = removePickableRolls $ countNeighbours b
     countRolls b = length $ concatMap (filter isRoll) b
     isRoll (Roll _) = True
     isRoll Empty = False
+    iter = removePickableRolls . countNeighbours
 
 removePickableRolls :: [[Cell]] -> [[Cell]]
 removePickableRolls = map (map removePickableRoll)
