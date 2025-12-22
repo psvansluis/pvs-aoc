@@ -21,7 +21,7 @@ fun <T> List<T>.combinations(): List<Pair<T, T>> = if (this.size < 2) {
 } else {
     val head = this.first()
     val tail = this.drop(1)
-    return tail.combinations() + tail.map { head to it }
+    return tail.combinations() + tail.map(head::to)
 }
 
 typealias Circuit = Set<Coordinate>
@@ -34,18 +34,25 @@ fun connectCircuits(circuits: Set<Circuit>, a: Coordinate, b: Coordinate): Set<C
     return remainder + setOf(joinedCircuit)
 }
 
-fun<T> Iterable<T>.productBy(transform: (T) -> Int): Long = fold(1L) { acc, element -> acc * transform(element) }
+fun productOf3LargestCircuits(coordinates: List<Coordinate>): Long =
+    coordinates.combinations().asSequence() // get all combinations
+        .sortedBy { (a, b) -> getDistance(a, b) }.take(1000) // get 1000 closest pairs
+        .fold(emptySet<Circuit>()) { circuits, (a, b) -> connectCircuits(circuits, a, b) }.map(Circuit::size) // connect the pairs as circuits
+        .sortedDescending().take(3).fold(1L) { acc, element -> acc * element } // get product of 3 largest circuits
 
-val closest1000 = coordinates.combinations().sortedBy { (a, b) -> getDistance(a, b) }.take(1000)
+println("part1 answer: " + productOf3LargestCircuits(coordinates))
 
-val circuits = closest1000.fold(emptySet<Circuit>()) { circuits, (a, b) -> connectCircuits(circuits, a, b) }
+fun getLastPairConnected(coordinates: List<Coordinate>): Pair<Coordinate, Coordinate> {
+    val coordinatePairsByDistance = coordinates.combinations().sortedBy { (a, b) -> getDistance(a, b) }
+    var circuits = setOf<Circuit>()
+    for (coordinatePair in coordinatePairsByDistance) {
+        circuits = connectCircuits(circuits, coordinatePair.first, coordinatePair.second)
+        if (circuits.any { circuit -> circuit.containsAll(coordinates) }) {
+            return coordinatePair
+        }
+    }
+    throw Exception("cannot connect all circuits; should not happen")
+}
 
-fun productOf3Largest(set: Set<Circuit>): Long = set
-    .map(Circuit::size)
-    .sortedDescending()
-    .take(3)
-    .fold(1L) { acc, element -> acc * element }
+println("part2 answer: " + getLastPairConnected(coordinates).let { (a, b) -> a.x.toLong() * b.x })
 
-println(circuits)
-println(circuits.map{ it.size})
-println(productOf3Largest(circuits))
