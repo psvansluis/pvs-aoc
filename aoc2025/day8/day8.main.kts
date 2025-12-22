@@ -42,7 +42,7 @@ fun productOf3LargestCircuits(coordinates: List<Coordinate>): Long =
             connectCircuits(circuits, a, b)
         } // connect the pairs as circuits
         .map(Circuit::size).sortedDescending().take(3)
-        .fold(1L) { acc, element -> acc * element } // get product of 3 largest circuits
+        .fold(1L, Long::times) // get product of 3 largest circuits
 
 println("part1 answer: " + productOf3LargestCircuits(coordinates))
 
