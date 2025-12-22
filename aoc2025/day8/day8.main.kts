@@ -12,9 +12,10 @@ fun parseLine(line: String): Coordinate = line.split(",").map(String::toInt).let
 
 val coordinates = lines.map(::parseLine)
 
-fun Int.`²`(): Long = this.toLong() * this
+fun Int.squared(): Long = this.toLong() * this
 
-fun getDistance(a: Coordinate, b: Coordinate): Long = (a.x - b.x).`²`() + (a.y - b.y).`²`() + (a.z - b.z).`²`()
+fun getDistance(a: Coordinate, b: Coordinate): Long =
+    (a.x - b.x).squared() + (a.y - b.y).squared() + (a.z - b.z).squared() // no need to take the square root here
 
 fun <T> List<T>.combinations(): List<Pair<T, T>> = if (this.size < 2) {
     emptyList()
@@ -31,27 +32,33 @@ fun connectCircuits(circuits: Set<Circuit>, a: Coordinate, b: Coordinate): Set<C
     val circuitB = circuits.find { c -> c.contains(b) } ?: setOf(b)
     val remainder: Set<Circuit> = circuits.filterNot { c -> c.contains(a) || c.contains(b) }.toSet()
     val joinedCircuit: Circuit = circuitA.union(circuitB)
-    return remainder + setOf(joinedCircuit)
+    return remainder.union(setOf(joinedCircuit))
 }
 
 fun productOf3LargestCircuits(coordinates: List<Coordinate>): Long =
     coordinates.combinations().asSequence() // get all combinations
         .sortedBy { (a, b) -> getDistance(a, b) }.take(1000) // get 1000 closest pairs
-        .fold(emptySet<Circuit>()) { circuits, (a, b) -> connectCircuits(circuits, a, b) }.map(Circuit::size) // connect the pairs as circuits
-        .sortedDescending().take(3).fold(1L) { acc, element -> acc * element } // get product of 3 largest circuits
+        .fold(emptySet<Circuit>()) { circuits, (a, b) ->
+            connectCircuits(circuits, a, b)
+        } // connect the pairs as circuits
+        .map(Circuit::size).sortedDescending().take(3)
+        .fold(1L) { acc, element -> acc * element } // get product of 3 largest circuits
 
 println("part1 answer: " + productOf3LargestCircuits(coordinates))
 
 fun getLastPairConnected(coordinates: List<Coordinate>): Pair<Coordinate, Coordinate> {
-    val coordinatePairsByDistance = coordinates.combinations().sortedBy { (a, b) -> getDistance(a, b) }
-    var circuits = setOf<Circuit>()
-    for (coordinatePair in coordinatePairsByDistance) {
-        circuits = connectCircuits(circuits, coordinatePair.first, coordinatePair.second)
-        if (circuits.any { circuit -> circuit.containsAll(coordinates) }) {
-            return coordinatePair
+    val pairs = coordinates.combinations().sortedBy { (a, b) -> getDistance(a, b) }
+    tailrec fun step(
+        remaining: List<Pair<Coordinate, Coordinate>>, circuits: Set<Circuit>
+    ): Pair<Coordinate, Coordinate> {
+        val (a, b) = remaining.first()
+        val updatedCircuits = connectCircuits(circuits, a, b)
+        return when {
+            updatedCircuits.any { it.containsAll(coordinates) } -> a to b
+            else -> step(remaining.drop(1), updatedCircuits)
         }
     }
-    throw Exception("cannot connect all circuits; should not happen")
+    return step(pairs, emptySet())
 }
 
 println("part2 answer: " + getLastPairConnected(coordinates).let { (a, b) -> a.x.toLong() * b.x })
